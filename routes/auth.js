@@ -3,7 +3,7 @@ const bcrypt=require('bcrypt');
 const User=require('../models/user')
 const jwt=require('jsonwebtoken')
 const router=express.Router();
-const JWT_SECRET='eren_yeager';
+const JWT_SECRET=process.env.JWT_SECRET;
 
 router.get('/register',(req,res)=>{
     res.render('register')
