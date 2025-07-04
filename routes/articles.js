@@ -1,28 +1,29 @@
 const express=require('express');
 const Article=require('./../models/article.js');
 const {generateArticle}=require('./../utils/gemini.js');
+const requireJWT=require('./../middleware/auth');
 const router=express.Router();
 
 
-router.get('/new',(req,res)=>{
+router.get('/new',requireJWT,(req,res)=>{
     res.render('new',({article: new Article()}));
 })
-router.get('/article-generator',(req,res)=>{
+router.get('/article-generator',requireJWT,(req,res)=>{
     res.render('article-generator',{ generatedArticle: null });
 })
-router.get('/edit/:id',async (req,res)=>{
+router.get('/edit/:id',requireJWT,async (req,res)=>{
     const article=await Article.findById(req.params.id);
     res.render('edit',{article})
 })
 
-router.get('/:slug',async (req,res)=>{
+router.get('/:slug',requireJWT,async (req,res)=>{
     const article=await Article.findOne({slug: req.params.slug});
     if(article==null){
         res.redirect('/');
     }
     res.render('show',{article:article})
 })
-router.post('/article-generator',async (req,res)=>{
+router.post('/article-generator',requireJWT,async (req,res)=>{
     const topic=req.body.topic;
     try{
         const article= await generateArticle(topic);
@@ -32,17 +33,17 @@ router.post('/article-generator',async (req,res)=>{
         res.status(500).send("Something went wrong");
     }
 })
-router.post('/',async (req,res,next)=>{
+router.post('/',requireJWT,async (req,res,next)=>{
     req.article=new Article();
     next()
 },saveArticleAndRedirect('new'))
 
-router.put('/:id',async (req,res,next)=>{
+router.put('/:id',requireJWT,async (req,res,next)=>{
     req.article=await Article.findById(req.params.id);
     next()
 },saveArticleAndRedirect('edit'))
 
-router.delete('/:id',async (req,res)=>{
+router.delete('/:id',requireJWT,async (req,res)=>{
     await Article.findByIdAndDelete(req.params.id);
     res.redirect('/');
 })
